@@ -1786,7 +1786,7 @@ class MmuFilamentMovement:
 
         # Lock the extruder stepper
         stepper_enable = self.printer.lookup_object('stepper_enable')
-        extruder_stepper = self.toolhead.get_extruder().extruder_stepper.stepper
+        extruder_stepper = u.extruder_stepper_obj().stepper
         ge = stepper_enable.lookup_enable(extruder_stepper.get_name())
         ge.motor_enable(self.toolhead.get_last_move_time())
 
@@ -3317,7 +3317,7 @@ class MmuFilamentMovement:
             self.p.extruder_form_tip_current,
             "for tip forming move",
         ):
-            extruder_stepper = self.toolhead.get_extruder().extruder_stepper.stepper
+            extruder_stepper = u.extruder_stepper_obj().stepper
             initial_mcu_pos = extruder_stepper.get_mcu_position()
             initial_encoder_position = self.get_encoder_distance()
             retracted = self.park_retracted_length() # How far back from a full nozzle the macro starts

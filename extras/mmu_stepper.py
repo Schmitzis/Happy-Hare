@@ -816,7 +816,10 @@ class MmuStepper(ExtruderStepper):
 
         printer_extruder = self.printer.lookup_object(self.name, None)
         if isinstance(printer_extruder, PrinterExtruder):
-            self.stepper.set_position([printer_extruder.last_position, 0., 0.])
+            extruder_position = printer_extruder.last_position
+            if isinstance(extruder_position, (list, tuple)):
+                extruder_position = sum(extruder_position)
+            self.stepper.set_position([extruder_position, 0., 0.])
             self.stepper.set_trapq(printer_extruder.trapq)
         else:
             self.stepper.set_position([pos, 0., 0.])
@@ -837,10 +840,13 @@ class MmuStepper(ExtruderStepper):
 
         # Restore extruder kinematics allocated by stock ExtruderStepper
         self.stepper.set_stepper_kinematics(self.sk_extruder)
-        self.stepper.set_position([extruder.last_position, 0., 0.])
+        extruder_position = extruder.last_position
+        if isinstance(extruder_position, (list, tuple)):
+            extruder_position = sum(extruder_position)
+        self.stepper.set_position([extruder_position, 0., 0.])
         self.stepper.set_trapq(extruder.get_trapq())
 
-        self.commanded_pos = extruder.last_position
+        self.commanded_pos = extruder_position
         self.motion_mode = self.MODE_EXTRUDER
         self.motion_queue = extruder.get_name()
         self.manual_motion_queue = None

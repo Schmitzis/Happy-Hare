@@ -80,6 +80,14 @@ class MmuExtruderWrapper():
         self.printer.register_event_handler('klippy:ready', self._handle_ready)
 
 
+    @staticmethod
+    def _link_extruder_stepper(printer_extruder, extruder_stepper):
+        if hasattr(printer_extruder, 'link_extruder_stepper'):
+            printer_extruder.link_extruder_stepper(extruder_stepper)
+        else:
+            printer_extruder.extruder_stepper = extruder_stepper
+
+
     def add_unit(self, mmu_unit):
         self.connected_units.append(mmu_unit)
 
@@ -105,11 +113,11 @@ class MmuExtruderWrapper():
             self.config.fileconfig.set(self.extruder_name(), key, value)
 
         # Now we can switch in homing MmuExtruderStepper
-        printer_extruder.extruder_stepper = self.homing_extruder_stepper
+        self._link_extruder_stepper(printer_extruder, self.homing_extruder_stepper)
         self.homing_extruder_stepper.stepper.set_trapq(printer_extruder.get_trapq())
         self.mmu.log_debug(f"Extruder {self.extruder_name()} replaced with homing extruder")
 
-        self._extruder_stepper = printer_extruder.extruder_stepper
+        self._extruder_stepper = self.homing_extruder_stepper
 
 
         # Find TMC for extruder for current control ---------------------------------------------------------
@@ -245,6 +253,8 @@ class MmuExtruderStepper(MmuStepper):
 
     # Override simply to add QUIET option to control console logging
     def cmd_SET_PRESSURE_ADVANCE(self, gcmd):
+        if hasattr(self, 'pa_model'):
+            return super(MmuExtruderStepper, self).cmd_SET_PRESSURE_ADVANCE(gcmd)
         pressure_advance = gcmd.get_float('ADVANCE', self.pressure_advance, minval=0.)
         smooth_time = gcmd.get_float('SMOOTH_TIME', self.pressure_advance_smooth_time, minval=0., maxval=.200)
         self._set_pressure_advance(pressure_advance, smooth_time)
